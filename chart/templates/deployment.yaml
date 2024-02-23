@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "waii.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "waii.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "waii.name" . }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: SKIP_PRELOAD_DATA
+          value: "true"
+        - name: REDIRECT_LOG
+          value: "1"
+        - name: RDS_URL
+          value: "{{ .Values.env.rdsUrl }}"
+        - name: OPENAI_API_KEY
+          value: "{{ .Values.env.openaiApiKey }}"
+        ports:
+        - containerPort: 3456
+        volumeMounts:
+        - name: logs
+          mountPath: /tmp/logs
+        - name: waii-storage
+          mountPath: /root/.waii_storage
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: waii-storage
+        emptyDir: {}

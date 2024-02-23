@@ -1,0 +1,4 @@
+apiVersion: v2
+name: waii
+description: A Helm chart for Waii
+version: 0.1.0

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "waii.fullname" . }}
+  labels:
+    {{- include "waii.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3456
+      targetPort: 3456
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "waii.selectorLabels" . | nindent 6 }}

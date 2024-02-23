@@ -1,0 +1,14 @@
+replicaCount: 1
+image:
+  repository: "waiilabs/sandbox"
+  tag: latest
+  pullPolicy: IfNotPresent
+  platform: linux/amd64
+service:
+  type: ClusterIP
+  port: 3456
+env:
+  rdsUrl: ''
+  openaiApiKey: ''
+imagePullSecrets:
+  - name: regcred
