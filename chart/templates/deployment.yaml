@@ -36,8 +36,19 @@ spec:
           mountPath: /tmp/logs
         - name: waii-storage
           mountPath: /root/.waii_storage
+        - name: config-vol
+          mountPath: /waii/
+      dnsConfig:
+        options:
+          - name: edns0
       volumes:
       - name: logs
         emptyDir: {}
       - name: waii-storage
         emptyDir: {}
+      - name: config-vol
+        configMap:
+          name: waii-conf
+          items:
+            - key: azure-openai.conf
+              path: llm_endpoint.config
