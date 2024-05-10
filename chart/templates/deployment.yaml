@@ -27,8 +27,12 @@ spec:
           value: "1"
         - name: RDS_URL
           value: "{{ .Values.env.rdsUrl }}"
+        - name: SIMPLE_PASSWORD
+          value: "true"
         - name: OPENAI_API_KEY
           value: "{{ .Values.env.openaiApiKey }}"
+        - name: ENDPOINT_CONFIG_FILE
+          value: "{{ .Values.env.endpointConfigFile }}"
         ports:
         - containerPort: 3456
         volumeMounts:
@@ -36,8 +40,8 @@ spec:
           mountPath: /tmp/logs
         - name: waii-storage
           mountPath: /root/.waii_storage
-        - name: config-vol
-          mountPath: /waii/
+        - name: waii-llm-config
+          mountPath: /root/waii-llm-config
       dnsConfig:
         options:
           - name: edns0
@@ -46,9 +50,6 @@ spec:
         emptyDir: {}
       - name: waii-storage
         emptyDir: {}
-      - name: config-vol
-        configMap:
-          name: waii-conf
-          items:
-            - key: azure-openai.conf
-              path: llm_endpoint.config
+      - name: waii-llm-config
+        secret:
+          secretName: waii-llm-config

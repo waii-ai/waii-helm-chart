@@ -10,5 +10,6 @@ service:
 env:
   rdsUrl: ''
   openaiApiKey: ''
+  endpointConfigFile: '/root/waii-llm-config/llm_endpoints.yml'
 imagePullSecrets:
   - name: regcred
