@@ -33,6 +33,8 @@ spec:
           value: "{{ .Values.env.openaiApiKey }}"
         - name: ENDPOINT_CONFIG_FILE
           value: "{{ .Values.env.endpointConfigFile }}"
+        - name: WAII_DEFAULT_API_KEY
+          value: "{{ .Values.env.waiiDefaultApiKey }}"
         ports:
         - containerPort: 3456
         volumeMounts:
