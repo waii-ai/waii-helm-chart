@@ -26,13 +26,18 @@ spec:
         - name: REDIRECT_LOG
           value: "1"
         - name: RDS_URL
-          value: "{{ .Values.env.rdsUrl }}"
+          valueFrom:
+            secretKeyRef:
+              name: waii-rds-creds
+              key: rdsUrl
         - name: SIMPLE_PASSWORD
           value: "true"
         - name: OPENAI_API_KEY
           value: "{{ .Values.env.openaiApiKey }}"
         - name: ENDPOINT_CONFIG_FILE
           value: "{{ .Values.env.endpointConfigFile }}"
+        - name: WAII_DEFAULT_API_KEY
+          value: "{{ .Values.env.waiiDefaultApiKey }}"
         ports:
         - containerPort: 3456
         volumeMounts:
