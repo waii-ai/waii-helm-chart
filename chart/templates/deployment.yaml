@@ -25,11 +25,14 @@ spec:
           value: "true"
         - name: REDIRECT_LOG
           value: "1"
-        - name: RDS_URL
+        - name: SECURE_RDS_URL
           valueFrom:
             secretKeyRef:
               name: waii-rds-creds
               key: rdsUrl
+              optional: true
+        - name: RDS_URL
+          value: "{{ .Values.env.rdsUrl }}"
         - name: SIMPLE_PASSWORD
           value: "true"
         - name: OPENAI_API_KEY
