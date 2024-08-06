@@ -8,6 +8,7 @@ service:
   type: ClusterIP
   port: 3456
 env:
+  rdsUrl: ''
   openaiApiKey: ''
   endpointConfigFile: '/root/waii-llm-config/llm_endpoints.yml'
   waiiDefaultApiKey: ''
