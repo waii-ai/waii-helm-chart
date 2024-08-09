@@ -25,20 +25,15 @@ spec:
           value: "true"
         - name: REDIRECT_LOG
           value: "1"
-        - name: SECURE_RDS_URL
+        - name: RDS_URL
           valueFrom:
             secretKeyRef:
               name: waii-rds-creds
               key: rdsUrl
-              optional: true
-        - name: RDS_URL
-          value: "{{ .Values.env.rdsUrl }}"
         - name: SIMPLE_PASSWORD
           value: "true"
         - name: OPENAI_API_KEY
           value: "{{ .Values.env.openaiApiKey }}"
-        - name: ENDPOINT_CONFIG_FILE
-          value: "{{ .Values.env.endpointConfigFile }}"
         - name: WAII_DEFAULT_API_KEY
           value: "{{ .Values.env.waiiDefaultApiKey }}"
         ports:
@@ -48,8 +43,12 @@ spec:
           mountPath: /tmp/logs
         - name: waii-storage
           mountPath: /root/.waii_storage
+        - name: waii-models-config
+          mountPath: /waii/models.config
+          subPath: models.config
         - name: waii-llm-config
-          mountPath: /root/waii-llm-config
+          mountPath: /waii/llm_endpoint.config
+          subPath: llm_endpoint.config 
       dnsConfig:
         options:
           - name: edns0
@@ -58,6 +57,9 @@ spec:
         emptyDir: {}
       - name: waii-storage
         emptyDir: {}
+      - name: waii-models-config
+        configMap:
+          name: waii-models-config
       - name: waii-llm-config
         secret:
           secretName: waii-llm-config
