@@ -7,6 +7,11 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "waii.name" . }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -38,6 +43,21 @@ spec:
           value: "{{ .Values.env.waiiDefaultApiKey }}"
         ports:
         - containerPort: 3456
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              if [ -n "$WAII_DEFAULT_API_KEY" ]; then
+                curl -X POST -H "Content-Type: application/json" -H "authorization: Bearer $WAII_DEFAULT_API_KEY" http://localhost:3456/api/health-check --data-raw '{"scope":"","org_id":"","user_id":""}'
+              else
+                curl -X POST -H "Content-Type: application/json" http://localhost:3456/api/health-check --data-raw '{"scope":"","org_id":"","user_id":""}'
+              fi
+          initialDelaySeconds: 180
+          periodSeconds: 60
+          failureThreshold: 6 
+          timeoutSeconds: 5 
         volumeMounts:
         - name: logs
           mountPath: /tmp/logs
