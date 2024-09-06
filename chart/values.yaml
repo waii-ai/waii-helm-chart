@@ -12,3 +12,7 @@ env:
   waiiDefaultApiKey: ''
 imagePullSecrets:
   - name: regcred
+conf:
+  JSON_SCHEME_SERIALIZER: genson
+  GENERATE_FROM_LIKED_QUERY: few-shot
+  REPORTING_VIEW_INITIALIZATION_DELAY_SEC: 0

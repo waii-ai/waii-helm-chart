@@ -36,6 +36,12 @@ spec:
           value: "{{ .Values.env.openaiApiKey }}"
         - name: WAII_DEFAULT_API_KEY
           value: "{{ .Values.env.waiiDefaultApiKey }}"
+        args:
+        - "--api_key_auth_enabled"
+        {{- range $key, $value := .Values.conf }}
+        - "--conf"
+        - "{{ $key }}={{ $value }}"
+        {{- end }}
         ports:
         - containerPort: 3456
         volumeMounts:
