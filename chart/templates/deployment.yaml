@@ -36,6 +36,8 @@ spec:
           value: "{{ .Values.env.openaiApiKey }}"
         - name: WAII_DEFAULT_API_KEY
           value: "{{ .Values.env.waiiDefaultApiKey }}"
+        - name: ENABLE_LOG_STREAMING
+          value: "{{ .Values.env.enableLogStreaming }}"
         ports:
         - containerPort: 3456
         volumeMounts:

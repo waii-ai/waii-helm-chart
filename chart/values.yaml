@@ -10,5 +10,6 @@ service:
 env:
   openaiApiKey: ''
   waiiDefaultApiKey: ''
+  enableLogStreaming: ''
 imagePullSecrets:
   - name: regcred
