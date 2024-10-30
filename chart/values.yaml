@@ -1,14 +1,26 @@
 replicaCount: 1
+namespace: waii
+
 image:
   repository: "waiilabs/sandbox"
-  tag: latest
-  pullPolicy: IfNotPresent
+  digest: "sha256:45e3b204ee4ede4b20306ba91394478c7fae38f5369a378bf2d3b5c89b66d20e"
+  pullPolicy: Always
   platform: linux/amd64
+
 service:
   type: ClusterIP
   port: 3456
+
 env:
-  openaiApiKey: ''
-  waiiDefaultApiKey: ''
+  enableLogStreaming: false
+  
+resources:
+  requests:
+    cpu: "1000m"    
+    memory: "1Gi"  
+  limits:
+    cpu: "4000m" 
+    memory: "16Gi" 
+
 imagePullSecrets:
   - name: regcred

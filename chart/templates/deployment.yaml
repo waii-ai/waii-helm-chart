@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "waii.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "waii.labels" . | nindent 4 }}
+  annotations:
+    checkov.io/skip1: CKV_K8S_22=We need write access for Nginx logs
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -12,50 +17,97 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "waii.name" . }}
     spec:
-    {{- with .Values.imagePullSecrets }}
+      automountServiceAccountToken: false
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true 
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001  
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          privileged: false           
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsUser: 10001
+          capabilities:
+            drop:
+              - ALL
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              curl -X POST -H "Content-Type: application/json" http://localhost:9859/api/health-check --data-raw '{"scope":"","org_id":"","user_id":""}'
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              curl -X POST -H "Content-Type: application/json" http://localhost:9859/api/health-check --data-raw '{"scope":"","org_id":"","user_id":""}'
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          failureThreshold: 6 
+          timeoutSeconds: 5 
         env:
         - name: SKIP_PRELOAD_DATA
           value: "true"
         - name: REDIRECT_LOG
           value: "1"
-        - name: RDS_URL
-          valueFrom:
-            secretKeyRef:
-              name: waii-rds-creds
-              key: rdsUrl
         - name: SIMPLE_PASSWORD
           value: "true"
-        - name: OPENAI_API_KEY
-          value: "{{ .Values.env.openaiApiKey }}"
-        - name: WAII_DEFAULT_API_KEY
-          value: "{{ .Values.env.waiiDefaultApiKey }}"
-      {{- if .Values.env.enableLogStreaming }}
+        - name: NGINX_TEMP_PATH
+          value: "/tmp/nginx"
+        {{- if .Values.env.enableLogStreaming }}
         - name: ENABLE_LOG_STREAMING
           value: "{{ .Values.env.enableLogStreaming }}"
-      {{- end }}
+        {{- end }}
         ports:
         - containerPort: 3456
         volumeMounts:
         - name: logs
           mountPath: /tmp/logs
         - name: waii-storage
-          mountPath: /root/.waii_storage
+          mountPath: /.waii_storage
         - name: waii-models-config
           mountPath: /waii/models.config
           subPath: models.config
         - name: waii-llm-config
           mountPath: /waii/llm_endpoint.config
-          subPath: llm_endpoint.config 
-      dnsConfig:
-        options:
-          - name: edns0
+          subPath: llm_endpoint.config
+        - name: rds-secret
+          mountPath: /mnt/secrets/rds/rdsurl
+          subPath: RDS_URL
+        - name: openai-secret
+          mountPath: /mnt/secrets/openai/api-key
+          subPath: openaiApiKey
+          readOnly: true
+        - name: waii-secret
+          mountPath: /mnt/secrets/waii/api-key
+          subPath: waiiDefaultApiKey
+          readOnly: true
+        - name: nginx-temp
+          mountPath: /tmp/nginx
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
+        - name: nginx-run
+          mountPath: /var/run/nginx
+        - name: nginx-logs
+          mountPath: /var/log/nginx
       volumes:
       - name: logs
         emptyDir: {}
@@ -64,6 +116,27 @@ spec:
       - name: waii-models-config
         configMap:
           name: waii-models-config
+          optional: true
       - name: waii-llm-config
         secret:
           secretName: waii-llm-config
+          optional: true
+      - name: openai-secret
+        secret:
+          secretName: waii-secrets
+          optional: true
+      - name: waii-secret
+        secret:
+          secretName: waii-secrets
+          optional: true
+      - name: rds-secret
+        secret:
+          secretName: waii-rds-creds
+      - name: nginx-temp
+        emptyDir: {}
+      - name: nginx-cache
+        emptyDir: {}
+      - name: nginx-run
+        emptyDir: {}
+      - name: nginx-logs
+        emptyDir: {}
