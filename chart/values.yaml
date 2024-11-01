@@ -3,7 +3,7 @@ namespace: waii
 
 image:
   repository: "waiilabs/sandbox"
-  digest: "sha256:45e3b204ee4ede4b20306ba91394478c7fae38f5369a378bf2d3b5c89b66d20e"
+  digest: "sha256:46f1c56cc8daefd570067db9f06611f0e203aea9a60b88b554d8cec6bbcb5fb9"
   pullPolicy: Always
   platform: linux/amd64
 

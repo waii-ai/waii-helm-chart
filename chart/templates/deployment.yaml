@@ -49,7 +49,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              curl -X POST -H "Content-Type: application/json" http://localhost:9859/api/health-check --data-raw '{"scope":"","org_id":"","user_id":""}'
+              curl -X POST -H "Content-Type: application/json" http://localhost:3456/api/ping --data-raw '{"scope":"","org_id":"","user_id":""}'
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
@@ -58,7 +58,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              curl -X POST -H "Content-Type: application/json" http://localhost:9859/api/health-check --data-raw '{"scope":"","org_id":"","user_id":""}'
+              curl -X POST -H "Content-Type: application/json" http://localhost:3456/api/ping --data-raw '{"scope":"","org_id":"","user_id":""}'
           initialDelaySeconds: 30
           periodSeconds: 60
           failureThreshold: 6 
