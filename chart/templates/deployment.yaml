@@ -33,6 +33,8 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args: 
+        - "--api_key_auth_enabled"
         securityContext:
           privileged: false           
           allowPrivilegeEscalation: false
