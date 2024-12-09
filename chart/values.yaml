@@ -13,6 +13,8 @@ service:
 
 env:
   enableLogStreaming: false
+  loadSampleDb: true
+  simplePassword: true
   
 resources:
   requests:

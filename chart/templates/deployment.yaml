@@ -71,7 +71,9 @@ spec:
         - name: REDIRECT_LOG
           value: "1"
         - name: SIMPLE_PASSWORD
-          value: "true"
+          value: "{{ .Values.env.simplePassword }}"
+        - name: LOAD_SAMPLE_DB
+          value: "{{ .Values.env.loadSampleDb }}"
         - name: NGINX_TEMP_PATH
           value: "/tmp/nginx"
         {{- if .Values.env.enableLogStreaming }}
