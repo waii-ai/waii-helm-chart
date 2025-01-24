@@ -68,18 +68,12 @@ spec:
         env:
         - name: SKIP_PRELOAD_DATA
           value: "true"
-        - name: REDIRECT_LOG
-          value: "1"
         - name: SIMPLE_PASSWORD
           value: "{{ .Values.env.simplePassword }}"
         - name: LOAD_SAMPLE_DB
           value: "{{ .Values.env.loadSampleDb }}"
         - name: NGINX_TEMP_PATH
           value: "/tmp/nginx"
-        {{- if .Values.env.enableLogStreaming }}
-        - name: ENABLE_LOG_STREAMING
-          value: "{{ .Values.env.enableLogStreaming }}"
-        {{- end }}
         ports:
         - containerPort: 3456
         volumeMounts:

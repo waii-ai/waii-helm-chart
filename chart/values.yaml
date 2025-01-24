@@ -12,7 +12,6 @@ service:
   port: 3456
 
 env:
-  enableLogStreaming: false
   loadSampleDb: true
   simplePassword: true
   
