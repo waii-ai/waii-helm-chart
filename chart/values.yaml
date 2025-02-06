@@ -12,6 +12,10 @@ service:
   port: 3456
 
 env:
+  enableLogStreamingDocker: true
+  enableLogStreamingApplication: true
+  # redirectLogsDocker is ignored if enableLogStreamingDocker is true
+  redirectLogsDocker: false
   loadSampleDb: true
   simplePassword: true
   

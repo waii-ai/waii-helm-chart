@@ -74,6 +74,18 @@ spec:
           value: "{{ .Values.env.loadSampleDb }}"
         - name: NGINX_TEMP_PATH
           value: "/tmp/nginx"
+        {{- if (default true .Values.env.enableLogStreamingDocker) }}
+        - name: ENABLE_LOG_STREAMING_DOCKER
+          value: "true"
+        {{- end }}
+        {{- if (default true .Values.env.enableLogStreamingApplication) }}
+        - name: ENABLE_LOG_STREAMING_APPLICATION
+          value: "true"
+        {{- end }}
+        {{- if (default false .Values.env.redirectLogsDocker) }}
+        - name: REDIRECT_LOGS_DOCKER
+          value: "true"
+        {{- end }}
         ports:
         - containerPort: 3456
         volumeMounts:
