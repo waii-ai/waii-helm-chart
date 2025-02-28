@@ -74,7 +74,6 @@ spec:
           value: "{{ .Values.env.loadSampleDb }}"
         - name: NGINX_TEMP_PATH
           value: "/tmp/nginx"
-        {{- if (default false .Values.rds.useEnvVars) }}
         {{- if (default true .Values.env.enableLogStreamingDocker) }}
         - name: ENABLE_LOG_STREAMING_DOCKER
           value: "true"
@@ -87,6 +86,7 @@ spec:
         - name: REDIRECT_LOGS_DOCKER
           value: "true"
         {{- end }}
+        {{- if (default false .Values.rds.useEnvVars) }}
         {{- if hasKey .Values.env "rdsHost" }}
         - name: PGHOST
           value: {{ .Values.env.rdsHost | quote }}
