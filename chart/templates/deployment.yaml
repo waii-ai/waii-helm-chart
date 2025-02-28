@@ -74,6 +74,7 @@ spec:
           value: "{{ .Values.env.loadSampleDb }}"
         - name: NGINX_TEMP_PATH
           value: "/tmp/nginx"
+        {{- if (default false .Values.rds.useEnvVars) }}
         {{- if (default true .Values.env.enableLogStreamingDocker) }}
         - name: ENABLE_LOG_STREAMING_DOCKER
           value: "true"
@@ -108,6 +109,7 @@ spec:
         {{- if hasKey .Values.env "rdsDatabase" }}
         - name: PGDATABASE
           value: {{ .Values.env.rdsDatabase | quote }}
+        {{- end }}
         {{- end }}
         ports:
         - containerPort: 3456
