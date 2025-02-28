@@ -19,6 +19,17 @@ env:
   loadSampleDb: true
   simplePassword: true
   
+  ## postgres environment variables
+  # rdsHost: localhost
+  # rdsPort: 5432
+  # rdsUser: postgres
+  # rdsPassword:
+  #   fromSecret: rds-secret
+  # rdsDatabase: database
+
+rds:
+  useEnvVars: false
+
 resources:
   requests:
     cpu: "1000m"    
