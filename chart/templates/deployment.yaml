@@ -86,30 +86,26 @@ spec:
         - name: REDIRECT_LOGS_DOCKER
           value: "true"
         {{- end }}
-        {{- if (default false .Values.rds.useEnvVars) }}
-        {{- if hasKey .Values.env "rdsHost" }}
+        {{- if (default false .Values.env.rds.override) }}
         - name: PGHOST
-          value: {{ .Values.env.rdsHost | quote }}
-        {{- end }}
-        {{- if hasKey .Values.env "rdsUser" }}
+          value: {{ .Values.env.rds.host | quote }}
         - name: PGUSER
-          value: {{ .Values.env.rdsUser | quote }}
-        {{- end }}
-        {{- if and (hasKey .Values.env "rdsPassword") (hasKey .Values.env.rdsPassword "fromSecret") }}
+          value: {{ .Values.env.rds.user | quote }}
+        {{- $secret := lookup "v1" "Secret" .Release.Namespace .Values.env.rds.password.secret }}
+        {{- if $secret }}
         - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.env.rdsPassword.fromSecret }}
+              name: {{ .Values.env.rds.password.secret }}
               key: password
+        {{- else }}
+        - name: PGPASSWORD
+          value: {{ .Values.env.rds.password.hardcoded }}
         {{- end }}
-        {{- if hasKey .Values.env "rdsPort" }}
         - name: PGPORT
-          value: {{ .Values.env.rdsPort | quote }}
-        {{- end }}
-        {{- if hasKey .Values.env "rdsDatabase" }}
+          value: {{ .Values.env.rds.port | quote }}
         - name: PGDATABASE
-          value: {{ .Values.env.rdsDatabase | quote }}
-        {{- end }}
+          value: {{ .Values.env.rds.database | quote }}
         {{- end }}
         ports:
         - containerPort: 3456
@@ -166,10 +162,10 @@ spec:
         secret:
           secretName: waii-secrets
           optional: true
-      {{- if not (default false .Values.rds.useEnvVars) }}
+      {{- if not (default false .Values.env.rds.override) }}
       - name: rds-url
         secret:
-          secretName: waii-rds-url
+          secretName: waii-rds-creds
       {{- end }}
       - name: nginx-temp
         emptyDir: {}

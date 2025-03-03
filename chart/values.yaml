@@ -19,16 +19,15 @@ env:
   loadSampleDb: true
   simplePassword: true
   
-  ## postgres environment variables
-  # rdsHost: localhost
-  # rdsPort: 5432
-  # rdsUser: postgres
-  # rdsPassword:
-  #   fromSecret: rds-secret
-  # rdsDatabase: database
-
-rds:
-  useEnvVars: false
+  rds:
+    override: false # If false, all values ignored
+    host: localhost
+    port: 5432
+    user: postgres
+    password:
+      secret: rds-secret # First preference
+      hardcoded: mypassword # Fallback
+    database: database
 
 resources:
   requests:
