@@ -120,7 +120,7 @@ spec:
         - name: waii-llm-config
           mountPath: /waii/llm_endpoint.config
           subPath: llm_endpoint.config
-        {{- if not (default false .Values.rds.useEnvVars) }}
+        {{- if not (default false .Values.env.rds.override) }}
         - name: rds-url
           mountPath: /mnt/secrets/rds/rdsurl
           subPath: RDS_URL
