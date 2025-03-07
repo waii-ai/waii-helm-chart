@@ -91,17 +91,11 @@ spec:
           value: {{ .Values.env.rds.host | quote }}
         - name: PGUSER
           value: {{ .Values.env.rds.user | quote }}
-        {{- $secret := lookup "v1" "Secret" .Release.Namespace .Values.env.rds.password.secret }}
-        {{- if $secret }}
         - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ .Values.env.rds.password.secret }}
               key: password
-        {{- else }}
-        - name: PGPASSWORD
-          value: {{ .Values.env.rds.password.hardcoded }}
-        {{- end }}
         - name: PGPORT
           value: {{ .Values.env.rds.port | quote }}
         - name: PGDATABASE
