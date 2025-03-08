@@ -68,8 +68,6 @@ spec:
         env:
         - name: SKIP_PRELOAD_DATA
           value: "true"
-        - name: SIMPLE_PASSWORD
-          value: "{{ .Values.env.simplePassword }}"
         - name: LOAD_SAMPLE_DB
           value: "{{ .Values.env.loadSampleDb }}"
         - name: NGINX_TEMP_PATH
