@@ -91,9 +91,6 @@ spec:
           mountPath: /tmp/logs
         - name: waii-storage
           mountPath: /.waii_storage
-        - name: waii-models-config
-          mountPath: /waii/models.config
-          subPath: models.config
         - name: waii-llm-config
           mountPath: /waii/llm_endpoint.config
           subPath: llm_endpoint.config
@@ -121,10 +118,6 @@ spec:
         emptyDir: {}
       - name: waii-storage
         emptyDir: {}
-      - name: waii-models-config
-        configMap:
-          name: waii-models-config
-          optional: true
       - name: waii-llm-config
         secret:
           secretName: waii-llm-config
