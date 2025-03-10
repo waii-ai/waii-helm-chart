@@ -84,6 +84,21 @@ spec:
         - name: REDIRECT_LOGS_DOCKER
           value: "true"
         {{- end }}
+        {{- if (default false .Values.env.rds.override) }}
+        - name: PGHOST
+          value: {{ .Values.env.rds.host | quote }}
+        - name: PGUSER
+          value: {{ .Values.env.rds.user | quote }}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.env.rds.password.secret }}
+              key: password
+        - name: PGPORT
+          value: {{ .Values.env.rds.port | quote }}
+        - name: PGDATABASE
+          value: {{ .Values.env.rds.database | quote }}
+        {{- end }}
         ports:
         - containerPort: 3456
         volumeMounts:
@@ -94,9 +109,11 @@ spec:
         - name: waii-llm-config
           mountPath: /waii/llm_endpoint.config
           subPath: llm_endpoint.config
-        - name: rds-secret
+        {{- if not (default false .Values.env.rds.override) }}
+        - name: rds-url
           mountPath: /mnt/secrets/rds/rdsurl
           subPath: RDS_URL
+        {{- end }}
         - name: openai-secret
           mountPath: /mnt/secrets/openai/api-key
           subPath: openaiApiKey
@@ -130,9 +147,11 @@ spec:
         secret:
           secretName: waii-secrets
           optional: true
-      - name: rds-secret
+      {{- if not (default false .Values.env.rds.override) }}
+      - name: rds-url
         secret:
           secretName: waii-rds-creds
+      {{- end }}
       - name: nginx-temp
         emptyDir: {}
       - name: nginx-cache
