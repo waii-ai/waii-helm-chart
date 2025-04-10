@@ -2,7 +2,9 @@
 
 This Helm chart deploys the Waii application in a Kubernetes cluster.
 
-Ensure you have access to the Waii container registry. Reach out to Waii support for access
+## Prerequisites
+- Ensure the `waii` namespace is already created and pre-populated with required secrets
+- Ensure you have access to the Waii container registry. Please contact Waii support for details and secrets
 
 ## Installation
 
@@ -18,16 +20,12 @@ The following table lists the configurable parameters of the Waii chart and thei
 
 | Parameter | Description | Default | Type |
 |-----------|-------------|---------|------|
-| `namespace` | Kubernetes namespace | `waii` | string |
 | `image.repository` | Container image repository | `waiilabs/sandbox` | string |
 | `image.tag` | Container image tag | `latest` | string |
 | `image.digest` | Container image digest | | string |
 | `image.pullPolicy` | Container image pull policy | `Always` | string |
 | `service.type` | Kubernetes Service type | `ClusterIP` | string |
 | `service.port` | Service port | `3456` | integer |
-| `env.enableLogStreamingDocker` | Enable Docker log streaming | `true` | boolean |
-| `env.enableLogStreamingApplication` | Enable application log streaming | `true` | boolean |
-| `env.redirectLogsDocker` | Redirect Docker logs | `false` | boolean |
 | `env.rds.override` | Override RDS configuration | `false` | boolean |
 
 ### Waii Image tag and digest
