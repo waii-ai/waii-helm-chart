@@ -1,5 +1,5 @@
 # Overview
 
-This repo contains helm charts for deploying Waii service to k8s cluster.
+This repo contains Helm chart for deploying Waii app to a Kubernetes cluster.
 
-Step by step guide to deploy Waii service can be found here: https://doc.waii.ai/deployment/docs/self-hosted
+Step-by-step guide to deploy Waii service can be found here: https://doc.waii.ai/deployment/docs/self-hosted

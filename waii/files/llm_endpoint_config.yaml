@@ -1,0 +1,30 @@
+# One default chat model (required)
+- name: gpt-4o
+  external_name: GPT 4o
+  vendor: OpenAI
+  description: GPT 4o from OpenAI
+  default: True
+  model_type: chat
+  reasoning: False
+  endpoints:
+    - api_key: {{ .Values.files.llmEndpointConfig.apiKey }}
+# One default chat-reasoning model (optional)
+- name: gpt-4
+  external_name: GPT 4
+  vendor: OpenAI
+  description: GPT 4 from OpenAI
+  default: True
+  model_type: chat
+  reasoning: True
+  endpoints:
+    - api_key: {{ .Values.files.llmEndpointConfig.apiKey }}
+# One default embedding model (required)
+- name: text-embedding-ada-002
+  external_name: ADA 2
+  vendor: OpenAI
+  description: OpenAI ADA 2 for Embedding
+  default: True
+  model_type: embedding
+  reasoning: False
+  endpoints:
+    - api_key: {{ .Values.files.llmEndpointConfig.apiKey }}

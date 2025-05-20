@@ -1,0 +1,21 @@
+{{- if .Values.pdb.enabled }}
+{{- $hpaEnabled := .Values.autoscaling.enabled | default false }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "waii.fullname" . }}-pdb
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "waii.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "waii.selectorLabels" . | nindent 6 }}
+  {{- if and (lt .Values.replicaCount 2) (not $hpaEnabled) }}
+  maxUnavailable: 0
+  {{- else if $hpaEnabled }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable | default 0 }}
+  {{- else }}
+  minAvailable: {{ .Values.pdb.minAvailable | default 1 }}
+  {{- end }}
+{{- end }}

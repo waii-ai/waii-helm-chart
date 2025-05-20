@@ -1,0 +1,229 @@
+# Default values for waii chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count, more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+# More than 1 active replicas is not supported.
+replicaCount: 1
+
+# This is the namespace where the resources of this Helm chart are installed. If unspecified, release namespace will be used.
+# The Helm chart release itself can be installed in any other namespace, or it can use this namespace itself.
+namespace: waii
+
+# This sets the container image, more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: "waiilabs/sandbox"
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag, ignored if image digest is specified.
+  tag: "1.30.10-x86"
+  # This sets the image digest, higher priority over image tag.
+  digest: ""
+
+# Configuration related to the Docker registry for pulling images. This secret is always included in image pull secrets.
+dockerRegistry:
+  url: "https://index.docker.io/v1/"
+  username: getitfromwaii
+  password: getitfromwaii
+  secret: regcred
+
+# This is for the secrets for pulling an image from a private repository, more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# The secret specified in the dockerRegistry section is always included in image pull secrets. Use this override to include extra image pull secrets example for sidecars.
+imagePullSecrets: []
+#  - name: mypullsecret
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account, more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: false
+#  # Automatically mount a ServiceAccount's API credentials?
+#  automount: true
+#  # Annotations to add to the service account.
+#  annotations: {}
+#  # The name of the service account to use.
+#  # If not set and create is true, a name is generated using the fullname template.
+#  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+# Extra args to be passed to the docker container entrypoint.
+# To start Waii app in non-authenticated mode, do not provide the "--api_key_auth_enabled" arg.
+containerArgs:
+  - "--api_key_auth_enabled"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  privileged: false
+  runAsUser: 10001
+
+# This is for setting up a service, more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # Custom name specified for legacy reasons.
+  name: waii-svc
+  # This sets the service type, more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports, more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 3456
+
+# This block is for setting up the ingress for the chart, more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: false
+#  className: ""
+#  annotations:
+#    kubernetes.io/ingress.class: nginx
+#    kubernetes.io/tls-acme: "true"
+#  hosts:
+#    - host: waii-example.local
+#      paths:
+#        - path: /
+#          pathType: ImplementationSpecific
+#  tls:
+#    - secretName: waii-example-tls
+#      hosts:
+#        - waii-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube.
+  limits:
+    cpu: 4000m
+    memory: 16Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+# This is to set up the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  exec:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        curl -X POST -H "Content-Type: application/json" http://localhost:3456/api/ping --data-raw '{"scope":"","org_id":"","user_id":""}'
+  initialDelaySeconds: 30
+  periodSeconds: 10
+readinessProbe:
+  exec:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        curl -X POST -H "Content-Type: application/json" http://localhost:3456/api/ping --data-raw '{"scope":"","org_id":"","user_id":""}'
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  failureThreshold: 6
+  timeoutSeconds: 5
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+# More than 1 active replicas is not supported.
+autoscaling:
+  enabled: false
+#  minReplicas: 1
+#  maxReplicas: 1
+#  targetCPUUtilizationPercentage: 90
+#  targetMemoryUtilizationPercentage: 90
+
+# These are the pod disruption budget settings for the deployment.
+# More than 1 active replicas is not supported.
+pdb:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: 0
+
+# Additional volumes on the output Deployment definition.
+volumes:
+  - name: waii-storage
+    emptyDir: {}
+#  - name: pg-data
+#    emptyDir: {}
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+  - name: waii-storage
+    mountPath: /.waii_storage
+#  - name: pg-data
+#    mountPath: /var/lib/postgresql/data
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# These are the overrides for the environment variables exported in the container.
+env:
+  # Log docker container output to stdout in real-time if true.
+  enableLogStreamingDocker: true
+  # Log waii application output to stdout in real-time if true.
+  enableLogStreamingApplication: true
+  # redirectLogsDocker is internally ignored if enableLogStreamingDocker is true.
+  # Dump all logs to stdout after the docker container fully starts (instead of real-time) if true.
+  # This keeps the docker container startup logs clean.
+  redirectLogsDocker: false
+  # Start the container with the toy DB if true.
+  loadSampleDb: true
+
+  # Overrides for RDS specific environment variables.
+  rds:
+    # If false, the rdsUrl secret in the secrets section takes precedence.
+    override: false  # If false, all other env.rds values are ignored.
+    host: localhost
+    port: 5432
+    user: postgres
+    password:
+      secret: rds-secret  # First preference for password.
+      hardcoded: mypassword  # Fallback for password.
+    database: database
+
+# These are the overrides for files that get mounted as secrets.
+files:
+  llmEndpointConfig:
+    # The raw file contents as a string, to override the file in the chart.
+    # If rawContent is set, the file in the chart is ignored.
+    rawContent: ""
+    # OpenAI API key for the example llm endpoint config file in the chart.
+    apiKey: myapikeytooverride
+
+# These are the secrets used in volume mounts.
+# Other secrets (for env variables or image pull secrets) are defined in separate sections.
+# Either set the llmEndpointConfig secret fields, or the waiiSecrets secret fields. Both should not be set, you should decide on one way to provide LLM access to Waii.
+secrets:
+  llmEndpointConfig:
+    # The data for this secret comes from the file in the chart, or its override. Check the files section for more details.
+    secret: waii-llm-config
+  rdsUrl:
+    secret: waii-rds-creds
+    data:
+      # The RDS URL where this Waii app is to be deployed.
+      # Setting this to an empty string (or null) will deploy a standalone postgres database server inside the container (assuming env.rds.override is also false).
+      # If unset (assuming env.rds.override is also false), all data will be attached to the lifecycle of the container (standalone postgres database server).
+      rdsUrl: ""
+  waiiSecrets:
+    secret: waii-secrets
+    data:
+      # The default API key for Waii app. Leave this empty if starting in non-authenticated mode. Check container args for non-authenticated mode.
+      waiiDefaultApiKey: ""
+      # The API key for OpenAI LLM models (chat and embedding).
+      openaiApiKey: ""

@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "waii.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "waii.labels" . | nindent 4 }}
+  annotations:
+    {{- include "waii.annotations" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "waii.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "waii.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.dockerRegistry.secret }}
+      {{- with .Values.imagePullSecrets }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "waii.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.image.digest }}
+          image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.containerArgs }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: SKIP_PRELOAD_DATA
+              value: "true"
+            - name: LOAD_SAMPLE_DB
+              value: {{ quote .Values.env.loadSampleDb }}
+            - name: NGINX_TEMP_PATH
+              value: "/tmp/nginx"
+            {{- if ( .Values.env.enableLogStreamingDocker | default true ) }}
+            - name: ENABLE_LOG_STREAMING_DOCKER
+              value: "true"
+            {{- end }}
+            {{- if ( .Values.env.enableLogStreamingApplication | default true ) }}
+            - name: ENABLE_LOG_STREAMING_APPLICATION
+              value: "true"
+            {{- end }}
+            {{- if ( .Values.env.redirectLogsDocker | default true ) }}
+            - name: REDIRECT_LOGS_DOCKER
+              value: "true"
+            {{- end }}
+            {{- if ( .Values.env.rds.override | default false ) }}
+            - name: PGHOST
+              value: {{ .Values.env.rds.host | quote }}
+            - name: PGUSER
+              value: {{ .Values.env.rds.user | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.rds.password.secret }}
+                  key: password
+            - name: PGPORT
+              value: {{ .Values.env.rds.port | quote }}
+            - name: PGDATABASE
+              value: {{ .Values.env.rds.database | quote }}
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: logs
+              mountPath: /tmp/logs
+            - name: nginx-temp
+              mountPath: /tmp/nginx
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run/nginx
+            - name: nginx-logs
+              mountPath: /var/log/nginx
+            {{- if not .Values.secrets.waiiSecrets.data.openaiApiKey }}
+            - name: waii-llm-config
+              mountPath: /waii/llm_endpoint.config
+              subPath: llm_endpoint.config
+            {{- else }}
+            - name: waii-secrets
+              mountPath: /mnt/secrets/openai/api-key
+              subPath: openaiApiKey
+              readOnly: true
+            {{- end }}
+            - name: waii-secrets
+              mountPath: /mnt/secrets/waii/api-key
+              subPath: waiiDefaultApiKey
+              readOnly: true
+            {{- if not ( .Values.env.rds.override | default false ) }}
+            - name: rds-url
+              mountPath: /mnt/secrets/rds/rdsurl
+              subPath: RDS_URL
+              readOnly: true
+            {{- end }}
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: nginx-temp
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: nginx-logs
+          emptyDir: {}
+        {{- if not .Values.secrets.waiiSecrets.data.openaiApiKey }}
+        - name: waii-llm-config
+          secret:
+            secretName: waii-llm-config
+            optional: true
+        {{- end }}
+        - name: waii-secrets
+          secret:
+            secretName: waii-secrets
+            optional: true
+        {{- if not ( .Values.env.rds.override | default false ) }}
+        - name: rds-url
+          secret:
+            secretName: waii-rds-creds
+            optional: true
+        {{- end }}
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
