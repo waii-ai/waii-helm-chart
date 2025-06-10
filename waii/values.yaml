@@ -12,11 +12,11 @@ namespace: waii
 
 # This sets the container image, more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: "waiilabs/sandbox"
+  repository: "waiilabs/sandbox-new"
   # This sets the pull policy for images.
   pullPolicy: Always
   # Overrides the image tag, ignored if image digest is specified.
-  tag: "1.30.10-x86"
+  tag: "1.31.8-x86"
   # This sets the image digest, higher priority over image tag.
   digest: ""
 

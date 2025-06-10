@@ -48,8 +48,8 @@ The following table lists the configurable parameters of the Waii chart and thei
 
 | Parameter                                    | Description                                                | Default                      | Type    |
 |----------------------------------------------|------------------------------------------------------------|------------------------------|---------|
-| `image.repository`                           | Container image repository                                 | `waiilabs/sandbox`           | String  |
-| `image.tag`                                  | Container image tag, ignored if digest is specified        | `1.30.10-x86`                | String  |
+| `image.repository`                           | Container image repository                                 | `waiilabs/sandbox-new`       | String  |
+| `image.tag`                                  | Container image tag, ignored if digest is specified        | `1.31.8-x86`                 | String  |
 | `image.digest`                               | Container image digest, has higher priority over image tag | `""`                         | String  |
 | `dockerRegistry.username`                    | Username for Docker registry authentication                | `getitfromwaii`              | String  |
 | `dockerRegistry.password`                    | Password for Docker registry authentication                | `getitfromwaii`              | String  |
