@@ -156,6 +156,9 @@ pdb:
 volumes:
   - name: waii-storage
     emptyDir: {}
+  - name: custom-llm
+    configMap:
+      name: waii-custom-llm
 #  - name: pg-data
 #    emptyDir: {}
 
@@ -163,6 +166,8 @@ volumes:
 volumeMounts:
   - name: waii-storage
     mountPath: /.waii_storage
+  - name: custom-llm
+    mountPath: /waii/custom-llm
 #  - name: pg-data
 #    mountPath: /var/lib/postgresql/data
 
@@ -227,3 +232,141 @@ secrets:
       waiiDefaultApiKey: ""
       # The API key for OpenAI LLM models (chat and embedding).
       openaiApiKey: ""
+
+customLlm:
+  enabled: true
+  files:
+    init: ""
+    customLlm: |
+      import requests
+      import json
+      from typing import Optional, List, Dict
+
+      # LLM Response class required by Waii
+      class LLMResponse:
+          def __init__(
+              self,
+              output_message: str,
+              completion_tokens: Optional[int] = None,
+              prompt_tokens: Optional[int] = None,
+              finish_reason: Optional[str] = None,
+              logprobs: Optional[List[Dict[str, float]]] = None
+          ):
+              self.output_message = output_message
+              self.completion_tokens = completion_tokens
+              self.prompt_tokens = prompt_tokens
+              self.finish_reason = finish_reason
+              self.logprobs = logprobs
+
+
+      class InternalLLMWrapper:
+          """Custom LLM wrapper for internal gateway"""
+          
+          def __init__(self, **kwargs):
+              self.api_key = kwargs.get('api_key')
+              self.base_url = kwargs.get('base_url', 'https://your-internal-gateway.com/v1/openai')
+              self.app_name = kwargs.get('app_name', 'WAII-CHAT')
+              self.api_version = kwargs.get('api_version', '2024-10-21')
+              self.model_version = kwargs.get('model_version', '2024-11-20')
+
+          def chat_completion(
+              self,
+              msg: str,
+              model: str,
+              temperature: float = 0,
+              max_tokens: Optional[int] = None,
+              **kwargs
+          ) -> Optional[LLMResponse]:
+              try:
+                  headers = {
+                      'x-api-key': self.api_key,
+                      'APP-NAME': self.app_name,
+                      'Content-Type': 'application/json'
+                  }
+
+                  # Handle Waii's system message format
+                  if msg.startswith('<s>[INST]') and '[/INST]' in msg:
+                      parts = msg.split('[/INST]\n\n')
+                      system_msg = parts[0].replace('<s>[INST]', '').strip()
+                      user_msg = parts[1].strip()
+                      messages = [
+                          {"role": "system", "content": system_msg},
+                          {"role": "user", "content": user_msg}
+                      ]
+                  else:
+                      messages = [{"role": "user", "content": msg}]
+
+                  model_params = {
+                      "temperature": temperature,
+                      "messages": messages
+                  }
+                  
+                  if max_tokens is not None:
+                      model_params["max_tokens"] = max_tokens
+
+                  payload = {
+                      "model": model,
+                      "api-version": self.api_version,
+                      "model-version": self.model_version,
+                      "task": "chat/completions",
+                      "model-params": model_params
+                  }
+
+                  response = requests.post(self.base_url, headers=headers, json=payload, timeout=60)
+                  response.raise_for_status()
+                  result = response.json()
+
+                  if 'choices' in result and len(result['choices']) > 0:
+                      choice = result['choices'][0]
+                      usage = result.get('usage', {})
+                      
+                      return LLMResponse(
+                          output_message=choice['message']['content'],
+                          completion_tokens=usage.get('completion_tokens'),
+                          prompt_tokens=usage.get('prompt_tokens'),
+                          finish_reason=choice.get('finish_reason')
+                      )
+                  return None
+
+              except Exception as e:
+                  print(f"LLM API error: {e}")
+                  return None
+    customEmbedding: |
+      import requests
+      import json
+      from typing import List
+
+      class InternalEmbeddingWrapper:
+          """Custom embedding wrapper for internal gateway"""
+          
+          def __init__(self, **kwargs):
+              self.api_key = kwargs.get('api_key')
+              self.base_url = kwargs.get('base_url', 'https://your-internal-gateway.com/v1/openai')
+
+          def embedding(self, text: str, model: str, **kwargs) -> List[float]:
+              try:
+                  headers = {
+                      'X-Api-Key': self.api_key,
+                      'Content-Type': 'application/json'
+                  }
+
+                  payload = {
+                      "model": model,
+                      "task": "embeddings",
+                      "model-params": {"input": text}
+                  }
+
+                  response = requests.post(self.base_url, headers=headers, json=payload, timeout=60)
+                  response.raise_for_status()
+                  result = response.json()
+
+                  if 'data' in result and len(result['data']) > 0:
+                      return result['data'][0].get('embedding', [])
+                  return []
+
+              except Exception as e:
+                  print(f"Embedding API error: {e}")
+                  return []
+    requirements: |
+      requests
+      pydantic>=2.0.0
