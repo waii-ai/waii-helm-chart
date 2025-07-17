@@ -197,6 +197,15 @@ env:
       hardcoded: mypassword  # Fallback for password.
     database: database
 
+  nginx:
+    clientMaxBodySize: "100m"
+    gzipMinLength: 1000
+    limitReqZoneConnLimit: "10m"
+    limitReqZoneApiRate: 75
+    limitConnZoneConnLimit: "10m"
+    limitReqApiBurst: 100
+    limitReqConnLimit: 100
+
 # These are the overrides for files that get mounted as secrets.
 files:
   llmEndpointConfig:

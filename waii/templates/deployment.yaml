@@ -57,6 +57,20 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
+            - name: CLIENT_MAX_BODY_SIZE
+              value: {{ .Values.env.nginx.clientMaxBodySize }}
+            - name: GZIP_MIN_LENGTH
+              value: {{ .Values.env.nginx.gzipMinLength | quote }}
+            - name: LIMIT_REQ_ZONE_CONN_LIMIT
+              value: {{ .Values.env.nginx.limitReqZoneConnLimit }}
+            - name: LIMIT_REQ_ZONE_API_RATE
+              value: {{ .Values.env.nginx.limitReqZoneApiRate | quote }}
+            - name: LIMIT_CONN_ZONE_CONN_LIMIT
+              value: {{ .Values.env.nginx.limitConnZoneConnLimit }}
+            - name: LIMIT_REQ_API_BURST
+              value: {{ .Values.env.nginx.limitReqApiBurst | quote }}
+            - name: LIMIT_REQ_CONN_LIMIT
+              value: {{ .Values.env.nginx.limitReqConnLimit | quote }}
             - name: SKIP_PRELOAD_DATA
               value: "true"
             - name: LOAD_SAMPLE_DB
